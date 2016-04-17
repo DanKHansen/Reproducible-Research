@@ -17,8 +17,17 @@ dsprop <- subset(ds, ds$PROPDMG >  0)
 
 #1. Across the United States, which types of events (as indicated in the EVTYPE variable) 
 #are most harmful with respect to population health?
+mostfatal <- subset(ds,ds$FATALITIES == max(ds$FATALITIES))
+mostinjury <- subset(ds,ds$INJURIES == max(ds$INJURIES))
 
 ds2 <- cbind(ds,ds$FATALITIES+ds$INJURIES)
-
+mostpeople <- subset(ds2,ds2$V2 == max(ds2$V2))
 
 #2. Across the United States, which types of events have the greatest economic consequences?
+
+prop <- subset(ds,ds$PROPDMGEXP == "B")
+maxprop <- subset(prop, prop$PROPDMG == max(prop$PROPDMG))
+
+crop <- subset(ds,ds$CROPDMGEXP == "B")
+maxcrop <- subset(crop, crop$CROPDMG == max(crop$CROPDMG))
+
