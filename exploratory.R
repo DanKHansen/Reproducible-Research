@@ -1,10 +1,15 @@
 library(data.table)
 library(knitr)
 library(ggplot2)
-downloadurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 
-#Load data
-ds <- fread("repdata_data_StormData.csv")
+#Check if file is already present, else download it from the course site:
+if (!file.exists("stormdata.csv.bz2")) {
+    dlurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+    download.file(dlurl, "stormdata.csv.bz2")
+}
+#Load the dataset with inline unpacking 
+ds <- fread("bzcat stormdata.csv.bz2")
+
 
 #Convert BGN_DATE column:
 ds$BGN_DATE <- as.Date(ds$BGN_DATE[], "%m/%d/%Y %H:%M:%S")
