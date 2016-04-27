@@ -14,8 +14,10 @@ if (!file.exists("stormdata.csv.bz2")) {
     dlurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
     download.file(dlurl, "stormdata.csv.bz2")
 }
-#Load the dataset with inline unpacking 
-ds <- fread("bzcat stormdata.csv.bz2")
+#Load the dataset with inline unpacking (Linux only)
+if (toupper(Sys.info()["sysname"]) == "LINUX") {ds <- fread("bzcat stormdata.csv.bz2")}
+#Load the dataset Windows style
+if (toupper(Sys.info()["sysname"]) == "WINDOWS") {ds <- read.csv("stormdata.csv.bz2")}
 #NOAAs 48 standard event types
 stdevtype <- read.csv("stdevtype.csv")
 
