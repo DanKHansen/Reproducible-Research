@@ -33,65 +33,69 @@ ds1$EVTYPE <- trimws(ds1$EVTYPE)
 #Convert all values to upper-case
 ds1$EVTYPE <- toupper(ds1$EVTYPE)
 
-#Subset to only those events that have more than 0 fatalities, injury, crop- or property damage
-dsfatal <- subset(ds1, ds1$FATALITIES >  0, select = usednames[c(1:3)])
-dsinjury <- subset(ds1, ds$INJURIES >  0, select = usednames[c(1:2,4)])
-dscrop <- subset(ds1, ds$CROPDMG >  0, select = usednames[c(1:2,7:8)])
-dsprop <- subset(ds1, ds$PROPDMG >  0, select = usednames[c(1:2,5:6)])
-
-# TODO: clean up spelling an formating errors in EVTYPE
 #Check the amount of different values (there are 48 official EVTYPEs)
 length(unique(ds1$EVTYPE)) #returns 890 different EVTYPEs ! 
 #obviously misspelling and other invalid inputs are highly present
 
-#In order to reduce the number of cleaning up we will concentrate on the 4 subset
-length(unique(dsfatal$EVTYPE))
-length(unique(dsinjury$EVTYPE))
-length(unique(dscrop$EVTYPE))
-length(unique(dsprop$EVTYPE))
-
-
-
+#Some cleaning of various typos and abnormal entries, not extensive
+ds1$EVTYPE <- gsub("AVALANCE","AVALANCHE",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("GUSTY[[:print:]]","",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("WINTER STORM[[:print:]]*|BLOWING SNOW","WINTER STORM",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("WINTER WEATHER[[:print:]]*|WINTRY MIX","WINTER WEATHER",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("HEAT[[:print:]]*","HEAT",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("FLASH FLOOD[[:print:]]*","FLASH FLOOD",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("[[:print:]]*FLOOD[[:print:]]*","FLOOD",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("HURRICANE[[:print:]]*","HURRICANE",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("RIP CURRENT[[:print:]]*","RIP CURRENT",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("TSTM","THUNDERSTORM",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("THUNDERSTORM[[:print:]]*|THUNDERTORM[[:print:]]*","THUNDERSTORM WIND",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("COLD[[:print:]]*","COLD/WIND CHILL",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("WILD[[:print:]]*","WILDFIRE",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("HIGH SEA[[:print:]]*|HEAVY SURF[[:print:]]*|HEAVY SEA[[:print:]]*|HIGH WA[[:print:]]*|HIGH SW[[:print:]]*","HIGH SURF",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("HIGH WI[[:print:]]*|^WINDS$|^WIND$","HIGH WIND",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("TROPICAL[[:print:]]*","TROPICAL STORM",ds1$EVTYPE)
+ds1$EVTYPE <- gsub("RECORD[[:print:]]","",ds1$EVTYPE)
 
 # Convert CROPDMGEXP and PROPDMGEXP to "real" numbers before aggregating the values!
 # reference: http://rpubs.com/flyingdisc/PROPDMGEXP
 
-dscrop$CROPDMGEXP[dscrop$CROPDMGEXP == ""] <- 0
-dscrop$CROPDMGEXP <- gsub("[-\\?]", "0", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("\\+", "1", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("[[:digit:]]", "10", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("[Hh]", "100", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("[Kk]", "1000", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("[Mm]", "1000000", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- gsub("[Bb]", "1000000000", dscrop$CROPDMGEXP)
-dscrop$CROPDMGEXP <- as.numeric(dscrop$CROPDMGEXP)
-dscrop <- cbind(dscrop,"DMGxEXP" = dscrop$CROPDMG*dscrop$CROPDMGEXP)
-
-dsprop$PROPDMGEXP[dsprop$PROPDMGEXP == ""] <- 0
-dsprop$PROPDMGEXP <- gsub("[-\\?]", "0", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("\\+", "1", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("[[:digit:]]", "10", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("[Hh]", "100", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("[Kk]", "1000", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("[Mm]", "1000000", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- gsub("[Bb]", "1000000000", dsprop$PROPDMGEXP)
-dsprop$PROPDMGEXP <- as.numeric(dsprop$PROPDMGEXP)
+ds1$CROPDMGEXP[ds1$CROPDMGEXP == ""] <- 0
+ds1$CROPDMGEXP <- gsub("[-\\?]", "0", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("\\+", "1", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("[[:digit:]]", "10", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("[Hh]", "100", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("[Kk]", "1000", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("[Mm]", "1000000", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- gsub("[Bb]", "1000000000", ds1$CROPDMGEXP)
+ds1$CROPDMGEXP <- as.numeric(ds1$CROPDMGEXP)
 #Adding the multipla as a separate column to aggregate on
-dsprop <- cbind(dsprop,"DMGxEXP" = dsprop$PROPDMG*dsprop$PROPDMGEXP)
+ds1 <- cbind(ds1,"CROPDMGxEXP" = ds1$CROPDMG*ds1$CROPDMGEXP)
 
-dsf <- aggregate(dsfatal$FATALITIES,list(dsfatal$EVTYPE), FUN = sum)
-dsi <- aggregate(dsinjury$INJURIES, list(dsinjury$EVTYPE), FUN = sum)
-dsc <- aggregate(dscrop$V2, list(toupper(dscrop$EVTYPE)), FUN = sum)
-dsp <- aggregate(dsprop$V2, list(toupper(dsprop$EVTYPE)), FUN = sum)
+ds1$PROPDMGEXP[ds1$PROPDMGEXP == ""] <- 0
+ds1$PROPDMGEXP <- gsub("[-\\?]", "0", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("\\+", "1", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("[[:digit:]]", "10", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("[Hh]", "100", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("[Kk]", "1000", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("[Mm]", "1000000", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- gsub("[Bb]", "1000000000", ds1$PROPDMGEXP)
+ds1$PROPDMGEXP <- as.numeric(ds1$PROPDMGEXP)
+#Adding the multipla as a separate column to aggregate on
+ds1 <- cbind(ds1,"PROPDMGxEXP" = ds1$PROPDMG*ds1$PROPDMGEXP)
 
-dsfatal$EVTYPE <- gsub("AVALANCE","AVALANCHE",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("BLOWING SNOW","WINTER STORM",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("WINTER STORM[[:print:]]*","WINTER STORM",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("WINTER WEATHER[[:print:]]*","WINTER WEATHER",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("HEAT[[:print:]]*","HEAT",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("FLASH FLOOD[[:print:]]*","FLASH FLOOD",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("FLOOD[[:print:]]*","FLOOD",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("HURRICANE[[:print:]]*","HURRICANE",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("RIP CURRENT[[:print:]]*","RIP CURRENT",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("TSTM","THUNDERSTORM",dsfatal$EVTYPE)
-dsfatal$EVTYPE <- gsub("THUNDERSTORM","THUNDERSTORM WIND",dsfatal$EVTYPE)
+#Joining the numbers in separate columns
+ds1 <- cbind(ds1,"TOTALHARM" = ds1$FATALITIES + ds1$INJURIES)
+ds1 <- cbind(ds1,"TOTALDMG" = ds1$CROPDMGxEXP+ds1$PROPDMGxEXP)
+
+
+#Aggregating by eventtype
+dsharm <- aggregate(ds1$TOTALHARM, list(ds1$EVTYPE), FUN = sum)
+dsdmg <- aggregate(ds1$TOTALDMG / 1000000, list(ds1$EVTYPE), FUN = sum)
+
+dsharmorder <- dsharm[order(dsharm$x, decreasing = TRUE), ]
+topfiveharm <- head(dsharmorder,5)
+barplot(topfiveharm[,2],col=heat.colors(5),legend.text = topfiveharm[,1],ylab = "People impacted",xlab = "Event types")
+
+dsdmgorder <- dsdmg[order(dsdmg$x, decreasing = TRUE), ]
+topfivedmg <- head(dsdmgorder,5)
+barplot(topfivedmg[,2],col=heat.colors(5),legend.text = topfivedmg[,1],ylab = "million $",xlab = "Event types")
