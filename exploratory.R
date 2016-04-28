@@ -122,7 +122,7 @@ topfiveharm <- head(dsharm[order(dsharm$x, decreasing = TRUE), ],5)
 topfivedmg <- head(dsdmg[order(dsdmg$x, decreasing = TRUE), ],5)
 
 #Using basic plot system for the summary
-par(mfrow=c(2, 1))
+par(mfrow=c(1, 2))
 barplot(topfiveharm[,2],col=heat.colors(5),main = "Top five human impact events",legend.text = topfiveharm[,1],ylab = "Number of people impacted",xlab = "Event types")
 barplot(topfivedmg[,2],col=topo.colors(5),main = "Top five damaging events", legend.text = topfivedmg[,1],ylab = "Damage in million $",xlab = "Event types")
 
@@ -156,5 +156,5 @@ p4 <-ggplot(toptenprop, aes(x=factor(toptenprop$Group.1, levels = rev(toptenprop
         ggtitle("Top ten property-damaging events")
 
 #Using package gridExtra to arrange plots
-grid.arrange(p1, p2, p3, p4, ncol=1)
+grid.arrange(p1, p2, p3, p4, ncol=2)
 
