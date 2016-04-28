@@ -108,14 +108,13 @@ toptenprop <- head(dsprop[order(dsprop$x, decreasing = TRUE), ],10)
 topfiveharm <- head(dsharm[order(dsharm$x, decreasing = TRUE), ],5)
 topfivedmg <- head(dsdmg[order(dsdmg$x, decreasing = TRUE), ],5)
 
-#par(mfrow=c(2, 2))
-# barplot(toptenfatal[,2],col=heat.colors(10),main = "Top ten lethal events",names.arg = toptenfatal[,1],axis.lty = toptenfatal[,2],ylab = "Number of Fatalities",xlab = "Event types")
-# barplot(topteninjury[,2],col=heat.colors(10),main = "Top ten injuring events",legend.text = topteninjury[,1],ylab = "Number of Injuries",xlab = "Event types")
-# barplot(toptencrop[,2],col=topo.colors(10),main = "Top ten crop-damaging events",legend.text = toptencrop[,1],ylab = "Crop damage in million $",xlab = "Event types")
-# barplot(toptenprop[,2],col=topo.colors(10),main = "Top ten property-damaging events",legend.text = toptenprop[,1],ylab = "Property damage in million $",xlab = "Event types")
-#par()
+#Using basic plot system for the summary
+par(mfrow=c(1, 2))
+barplot(topfiveharm[,2],col=heat.colors(5),main = "Top five human impact events",legend.text = topfiveharm[,1],ylab = "Number of people impacted",xlab = "Event types")
+barplot(topfivedmg[,2],col=topo.colors(5),main = "Top five damaging events", legend.text = topfivedmg[,1],ylab = "Damage in million $",xlab = "Event types")
+par()
 
-#Setting up the plots
+#Setting up top-ten plots
 p1 <-ggplot(toptenfatal, aes(x=factor(toptenfatal$Group.1, levels = rev(toptenfatal$Group.1[])), y=toptenfatal$x)) + 
         geom_bar(stat="identity", fill = rev(heat.colors((10)))) + 
         coord_flip() + 
@@ -147,7 +146,3 @@ p4 <-ggplot(toptenprop, aes(x=factor(toptenprop$Group.1, levels = rev(toptenprop
 #Using package gridExtra to arrange plots
 grid.arrange(p1, p2, p3, p4, ncol=2)
 
-#Using basic plot system for the summary
-par(mfrow=c(1, 2))
-barplot(topfiveharm[,2],col=heat.colors(5),main = "Top five human impact events",legend.text = topfiveharm[,1],ylab = "Number of people impacted",xlab = "Event types")
-barplot(topfivedmg[,2],col=heat.colors(5),main = "Top five damaging events", legend.text = topfivedmg[,1],ylab = "Damage in million $",xlab = "Event types")
