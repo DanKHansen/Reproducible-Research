@@ -94,6 +94,14 @@ ds1 <- cbind(ds1,"TOTALDMG" = ds1$CROPDMGxEXP+ds1$PROPDMGxEXP)
 dsharm <- aggregate(ds1$TOTALHARM, list(ds1$EVTYPE), FUN = sum)
 dsdmg <- aggregate(ds1$TOTALDMG / 1000000, list(ds1$EVTYPE), FUN = sum)
 
+dsfatal <- aggregate(ds1$FATALITIES, list(ds1$EVTYPE), FUN = sum)
+dsinjury <- aggregate(ds1$INJURIES, list(ds1$EVTYPE), FUN = sum)
+dscrop <- aggregate(ds1$CROPDMGxEXP, list(ds1$EVTYPE), FUN = sum)
+dsprop <- aggregate(ds1$PROPDMGxEXP, list(ds1$EVTYPE), FUN = sum)
+
+barplot(dsfatal[,2],col=heat.colors(5),legend.text = dsfatal[,1],ylab = "Fatalities",xlab = "Event types")
+
+
 dsharmorder <- dsharm[order(dsharm$x, decreasing = TRUE), ]
 topfiveharm <- head(dsharmorder,5)
 barplot(topfiveharm[,2],col=heat.colors(5),legend.text = topfiveharm[,1],ylab = "People impacted",xlab = "Event types")
