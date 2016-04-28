@@ -1,6 +1,7 @@
 library(data.table)
 library(knitr)
 library(ggplot2)
+library(gridExtra)
 
 #Task:
 #1. Across the United States, which types of events (as indicated in the EVTYPE variable) 
@@ -96,16 +97,57 @@ dsdmg <- aggregate(ds1$TOTALDMG / 1000000, list(ds1$EVTYPE), FUN = sum)
 
 dsfatal <- aggregate(ds1$FATALITIES, list(ds1$EVTYPE), FUN = sum)
 dsinjury <- aggregate(ds1$INJURIES, list(ds1$EVTYPE), FUN = sum)
-dscrop <- aggregate(ds1$CROPDMGxEXP, list(ds1$EVTYPE), FUN = sum)
-dsprop <- aggregate(ds1$PROPDMGxEXP, list(ds1$EVTYPE), FUN = sum)
+dscrop <- aggregate(ds1$CROPDMGxEXP / 1000000, list(ds1$EVTYPE), FUN = sum)
+dsprop <- aggregate(ds1$PROPDMGxEXP / 1000000, list(ds1$EVTYPE), FUN = sum)
 
-barplot(dsfatal[,2],col=heat.colors(5),legend.text = dsfatal[,1],ylab = "Fatalities",xlab = "Event types")
+#Setting up the plots
+toptenfatal <- head(dsfatal[order(dsfatal$x,decreasing = TRUE), ],10)
+topteninjury <- head(dsinjury[order(dsinjury$x, decreasing = TRUE), ],10)
+toptencrop <- head(dscrop[order(dscrop$x, decreasing = TRUE), ],10)
+toptenprop <- head(dsprop[order(dsprop$x, decreasing = TRUE), ],10)
+topfiveharm <- head(dsharm[order(dsharm$x, decreasing = TRUE), ],5)
+topfivedmg <- head(dsdmg[order(dsdmg$x, decreasing = TRUE), ],5)
 
+#par(mfrow=c(2, 2))
+# barplot(toptenfatal[,2],col=heat.colors(10),main = "Top ten lethal events",names.arg = toptenfatal[,1],axis.lty = toptenfatal[,2],ylab = "Number of Fatalities",xlab = "Event types")
+# barplot(topteninjury[,2],col=heat.colors(10),main = "Top ten injuring events",legend.text = topteninjury[,1],ylab = "Number of Injuries",xlab = "Event types")
+# barplot(toptencrop[,2],col=topo.colors(10),main = "Top ten crop-damaging events",legend.text = toptencrop[,1],ylab = "Crop damage in million $",xlab = "Event types")
+# barplot(toptenprop[,2],col=topo.colors(10),main = "Top ten property-damaging events",legend.text = toptenprop[,1],ylab = "Property damage in million $",xlab = "Event types")
+#par()
 
-dsharmorder <- dsharm[order(dsharm$x, decreasing = TRUE), ]
-topfiveharm <- head(dsharmorder,5)
-barplot(topfiveharm[,2],col=heat.colors(5),legend.text = topfiveharm[,1],ylab = "People impacted",xlab = "Event types")
+#Setting up the plots
+p1 <-ggplot(toptenfatal, aes(x=factor(toptenfatal$Group.1, levels = rev(toptenfatal$Group.1[])), y=toptenfatal$x)) + 
+        geom_bar(stat="identity", fill = rev(heat.colors((10)))) + 
+        coord_flip() + 
+        xlab("") +
+        ylab("Number of Fatalities") + 
+        ggtitle("Top ten lethal events")
 
-dsdmgorder <- dsdmg[order(dsdmg$x, decreasing = TRUE), ]
-topfivedmg <- head(dsdmgorder,5)
-barplot(topfivedmg[,2],col=heat.colors(5),legend.text = topfivedmg[,1],ylab = "million $",xlab = "Event types")
+p2 <-ggplot(topteninjury, aes(x=factor(topteninjury$Group.1, levels = rev(topteninjury$Group.1[])), y=topteninjury$x)) + 
+        geom_bar(stat="identity", fill = rev(heat.colors((10)))) + 
+        coord_flip() + 
+        xlab("") +
+        ylab("Number of injuries") + 
+        ggtitle("Top ten injuring events")
+
+p3 <-ggplot(toptencrop, aes(x=factor(toptencrop$Group.1, levels = rev(toptencrop$Group.1[])), y=toptencrop$x)) + 
+        geom_bar(stat="identity", fill = rev(topo.colors((10)))) + 
+        coord_flip() + 
+        xlab("") +
+        ylab("Crop damage in million $") + 
+        ggtitle("Top ten crop-damaging events")
+
+p4 <-ggplot(toptenprop, aes(x=factor(toptenprop$Group.1, levels = rev(toptenprop$Group.1[])), y=toptenprop$x)) + 
+        geom_bar(stat="identity", fill = rev(topo.colors((10)))) + 
+        coord_flip() + 
+        xlab("") +
+        ylab("Property damage in million $") + 
+        ggtitle("Top ten property-damaging events")
+
+#Using package gridExtra to arrange plots
+grid.arrange(p1, p2, p3, p4, ncol=2)
+
+#Using basic plot system for the summary
+par(mfrow=c(1, 2))
+barplot(topfiveharm[,2],col=heat.colors(5),main = "Top five human impact events",legend.text = topfiveharm[,1],ylab = "Number of people impacted",xlab = "Event types")
+barplot(topfivedmg[,2],col=heat.colors(5),main = "Top five damaging events", legend.text = topfivedmg[,1],ylab = "Damage in million $",xlab = "Event types")
