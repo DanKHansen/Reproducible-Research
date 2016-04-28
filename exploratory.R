@@ -8,17 +8,19 @@ library(gridExtra)
 #are most harmful with respect to population health?
 #2. Across the United States, which types of events have the greatest economic consequences?
 
-
-
 #Check if dataset file is already present, else download it from the course site:
 if (!file.exists("stormdata.csv.bz2")) {
     dlurl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
     download.file(dlurl, "stormdata.csv.bz2")
 }
 #Load the dataset with inline unpacking (Linux only)
-if (toupper(Sys.info()["sysname"]) == "LINUX") {ds <- fread("bzcat stormdata.csv.bz2")}
+if (toupper(Sys.info()["sysname"]) == "LINUX") {
+    ds <- fread("bzcat stormdata.csv.bz2")
+}
 #Load the dataset Windows style
-if (toupper(Sys.info()["sysname"]) == "WINDOWS") {ds <- read.csv("stormdata.csv.bz2")}
+if (toupper(Sys.info()["sysname"]) == "WINDOWS") {
+    ds <- read.csv("stormdata.csv.bz2")
+}
 #NOAAs 48 standard event types
 stdevtype <- read.csv("stdevtype.csv")
 
@@ -62,6 +64,7 @@ ds1$EVTYPE <- gsub("RECORD[[:print:]]","",ds1$EVTYPE)
 # Convert CROPDMGEXP and PROPDMGEXP to "real" numbers before aggregating the values!
 # reference: http://rpubs.com/flyingdisc/PROPDMGEXP
 
+#Crop first
 ds1$CROPDMGEXP[ds1$CROPDMGEXP == ""] <- 0
 ds1$CROPDMGEXP <- gsub("[-\\?]", "0", ds1$CROPDMGEXP)
 ds1$CROPDMGEXP <- gsub("\\+", "1", ds1$CROPDMGEXP)
@@ -71,9 +74,8 @@ ds1$CROPDMGEXP <- gsub("[Kk]", "1000", ds1$CROPDMGEXP)
 ds1$CROPDMGEXP <- gsub("[Mm]", "1000000", ds1$CROPDMGEXP)
 ds1$CROPDMGEXP <- gsub("[Bb]", "1000000000", ds1$CROPDMGEXP)
 ds1$CROPDMGEXP <- as.numeric(ds1$CROPDMGEXP)
-#Adding the multipla as a separate column to aggregate on
-ds1 <- cbind(ds1,"CROPDMGxEXP" = ds1$CROPDMG*ds1$CROPDMGEXP)
 
+#And now prop
 ds1$PROPDMGEXP[ds1$PROPDMGEXP == ""] <- 0
 ds1$PROPDMGEXP <- gsub("[-\\?]", "0", ds1$PROPDMGEXP)
 ds1$PROPDMGEXP <- gsub("\\+", "1", ds1$PROPDMGEXP)
@@ -83,22 +85,33 @@ ds1$PROPDMGEXP <- gsub("[Kk]", "1000", ds1$PROPDMGEXP)
 ds1$PROPDMGEXP <- gsub("[Mm]", "1000000", ds1$PROPDMGEXP)
 ds1$PROPDMGEXP <- gsub("[Bb]", "1000000000", ds1$PROPDMGEXP)
 ds1$PROPDMGEXP <- as.numeric(ds1$PROPDMGEXP)
-#Adding the multipla as a separate column to aggregate on
+
+#Adding the multipla as a separate columns to aggregate on
+ds1 <- cbind(ds1,"CROPDMGxEXP" = ds1$CROPDMG*ds1$CROPDMGEXP)
 ds1 <- cbind(ds1,"PROPDMGxEXP" = ds1$PROPDMG*ds1$PROPDMGEXP)
 
-#Joining the numbers in separate columns
+#Joining the total numbers in separate columns to aggregate on
 ds1 <- cbind(ds1,"TOTALHARM" = ds1$FATALITIES + ds1$INJURIES)
 ds1 <- cbind(ds1,"TOTALDMG" = ds1$CROPDMGxEXP+ds1$PROPDMGxEXP)
 
 
 #Aggregating by eventtype
-dsharm <- aggregate(ds1$TOTALHARM, list(ds1$EVTYPE), FUN = sum)
-dsdmg <- aggregate(ds1$TOTALDMG / 1000000, list(ds1$EVTYPE), FUN = sum)
-
 dsfatal <- aggregate(ds1$FATALITIES, list(ds1$EVTYPE), FUN = sum)
 dsinjury <- aggregate(ds1$INJURIES, list(ds1$EVTYPE), FUN = sum)
 dscrop <- aggregate(ds1$CROPDMGxEXP / 1000000, list(ds1$EVTYPE), FUN = sum)
 dsprop <- aggregate(ds1$PROPDMGxEXP / 1000000, list(ds1$EVTYPE), FUN = sum)
+
+#And the totals
+dsharm <- aggregate(ds1$TOTALHARM, list(ds1$EVTYPE), FUN = sum)
+dsdmg <- aggregate(ds1$TOTALDMG / 1000000, list(ds1$EVTYPE), FUN = sum)
+
+#Reducing the aggregated dataset size
+dsfatal <- subset(dsfatal,dsfatal$x>0)
+dsinjury <- subset(dsinjury,dsinjury$x>0)
+dscrop <- subset(dscrop,dscrop$x>0)
+dsprop <- subset(dsprop,dsprop$x>0)
+dsharm <- subset(dsharm,dsharm$x>0)
+dsdmg <- subset(dsdmg,dsdmg$x>0)
 
 #Setting up the plots
 toptenfatal <- head(dsfatal[order(dsfatal$x,decreasing = TRUE), ],10)
