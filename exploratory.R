@@ -123,8 +123,9 @@ topfivedmg <- head(dsdmg[order(dsdmg$x, decreasing = TRUE), ],5)
 
 #Using basic plot system for the summary
 par(mfrow=c(1, 2))
-barplot(topfiveharm[,2],col=heat.colors(5),main = "Top five human impact events",legend.text = topfiveharm[,1],ylab = "Number of people impacted",xlab = "Event types")
-barplot(topfivedmg[,2],col=topo.colors(5),main = "Top five damaging events", legend.text = topfivedmg[,1],ylab = "Damage in million $",xlab = "Event types")
+par(las=2)
+barplot(topfiveharm[,2],col=heat.colors(5), names.arg = topfiveharm$Group.1[],main = "Top five human impact events",cex.names = 0.8)
+barplot(topfivedmg[,2],col=topo.colors(5),names.arg = topfivedmg$Group.1[],main = "Top five damaging events \n in million $", cex.names = 0.8)
 
 #Setting up top-ten plots
 p1 <-ggplot(toptenfatal, aes(x=factor(toptenfatal$Group.1, levels = rev(toptenfatal$Group.1[])), y=toptenfatal$x)) + 
